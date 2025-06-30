@@ -13,7 +13,6 @@ import com.quantlearn.backtest.event.SignalEvent;
 import com.quantlearn.data.OrderDirection;
 import com.quantlearn.data.OrderType;
 
-import sun.misc.Signal;
 
 public class BasicPortfolio implements IPortfolio {
     private final double initialCash;
@@ -24,22 +23,30 @@ public class BasicPortfolio implements IPortfolio {
     
     public BasicPortfolio(double initialCash) {
         this.initialCash = initialCash;
+        this.currentCash = initialCash;
     }
 
     @Override
     public void onSignalEvent(SignalEvent signal, Queue<Event> eventQueue) {
         double quantity = 10;
+        double currentPrice = getMarketValue(signal.getSymbol());
+        System.out.printf("received signal for %s. Current market price is %.2f%n", 
+        signal.getSymbol(), currentPrice);
         if(signal.direction() == OrderDirection.BUY) {
             double estimatedCost = quantity * getMarketValue(signal.symbol());
             if(currentCash >= estimatedCost && estimatedCost>0) {
                 OrderEvent order = new OrderEvent(signal.timestamp(), signal.symbol(), OrderType.MARKET, OrderDirection.BUY, quantity);
                 eventQueue.add(order);
+            } else {
+                System.out.println("not creating OrderEvent"); 
             }
         } else if(signal.direction() == OrderDirection.SELL) {
             Position currentPosition = positions.get(signal.symbol());
             if(currentPosition != null && currentPosition.getQuantity()>= quantity) {
                 OrderEvent order = new OrderEvent(signal.timestamp(), signal.symbol(), OrderType.MARKET, OrderDirection.SELL, quantity);
                 eventQueue.add(order);
+            } else {
+                System.out.println("not creating OrderEvent"); 
             }
         }
     }

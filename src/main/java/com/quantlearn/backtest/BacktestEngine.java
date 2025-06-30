@@ -45,6 +45,7 @@ public class BacktestEngine {
         if(event instanceof MarketEvent me) {
             strategy.onMarketEvent(me, eventQueue);
             portfolio.updateMarketValue(me);
+            executionHandler.onMarketEvent(me);
         } else if (event instanceof SignalEvent se) {
             portfolio.onSignalEvent(se, eventQueue);
         } else if(event instanceof OrderEvent oe) {

@@ -33,7 +33,7 @@ public class SimulatedExecutionHandler implements IExecutionHandler{
         
         double fillPrice = calculateSlippage(orderEvent.direction(), latestBar);
         double commission = calculateCommission(orderEvent.quantity(), fillPrice);
-
+        
         FillEvent fillEvent = new FillEvent(
             orderEvent.timestamp(),
             orderEvent.symbol(),

@@ -40,6 +40,7 @@ public class CsvDataHandler implements IDataHandler {
     }
 
     @Override
+    @SuppressWarnings("UseSpecificCatch")
     public void next(Queue<Event> eventQueue){
         if(!hasNext()) {
             return;
@@ -55,6 +56,10 @@ public class CsvDataHandler implements IDataHandler {
         String[] values = currentLine.split(",");
 
         try {
+            if (values.length < 7) {
+                System.err.println("Skipping malformed data line (not enough columns): " + currentLine);
+                return;
+            }
             LocalDateTime localDateTime  = LocalDateTime.parse(values[0] + "T16:00:00");
             ZoneId zoneId = ZoneId.of("America/New_York");
             ZonedDateTime dateTime = localDateTime.atZone(zoneId);
@@ -68,14 +73,15 @@ public class CsvDataHandler implements IDataHandler {
             @SuppressWarnings("UnnecessaryTemporaryOnConversionFromString")
             Double close = Double.parseDouble(values[4]);
             @SuppressWarnings("UnnecessaryTemporaryOnConversionFromString")
-            Double volume = Double.parseDouble(values[5]);
+            Double volume = Double.parseDouble(values[6]);
 
             Bar bar = new BaseBar(Duration.ofDays(1), dateTime, open, high, low, close, volume);
             MarketEvent event = new MarketEvent(dateTime.toInstant(), symbol, bar);
             eventQueue.add(event);
 
         } catch (Exception e) {
-            System.out.println("skipping malformed data line"+currentLine+ "that produced this error: "+e);
+            System.err.println("parsing error on line:  " + currentLine);
+            e.printStackTrace();
         }
     }
 
