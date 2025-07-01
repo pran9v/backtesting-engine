@@ -1,5 +1,6 @@
 package com.quantlearn;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import com.quantlearn.backtest.BacktestEngine;
@@ -15,7 +16,8 @@ import com.quantlearn.strategy.SmaCrossStrategy;
 
 public class Main {
     public static void main(String[] args) {
-        System.err.println("--- Backtesting engine initialising ---");
+        System.err.println("--- Backtesting engine initialising ---\n");
+
         String csvFilePath = "data/SPY.csv";
         String symbol = "SPY";
         double initialCash = 100000.0;
@@ -23,23 +25,35 @@ public class Main {
         IDataHandler dataHandler = new CsvDataHandler(csvFilePath, symbol);
 
         Scanner sc = new Scanner(System.in);
-        System.out.println("Choose a strategy:%n");
-        System.out.println("1. BuyAndHold%n2. SmaCross(10, 30)");
-        System.out.println("enter: ");
-        int choice = sc.nextInt();
+        int choice = -1;
 
-        IStrategy strategy = switch(choice) {
-            case 1 -> new BuyAndHoldStrategy(symbol);
-            case 2 -> new SmaCrossStrategy(symbol, 10, 30);
+        System.out.println("Choose a strategy:");
+        System.out.println("1. Buy and Hold");
+        System.out.println("2. SMA Cross (10, 30)");
+        System.out.print("Enter choice (1 or 2): ");
+
+        try {
+            choice = sc.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("\nInvalid input. Please enter a number (1 or 2).");
+            System.exit(1);
+        } finally {
+            sc.close();
+        }
+
+        IStrategy strategy;
+
+        switch (choice) {
+            case 1 -> strategy = new BuyAndHoldStrategy(symbol);
+            case 2 -> strategy = new SmaCrossStrategy(symbol, 10, 30);
             default -> {
-                System.out.println("Enter a valid choice.");
+                System.out.println("\nInvalid choice. Please select 1 or 2.");
                 System.exit(1);
-                yield null; 
+                return;
             }
-        };
+        }
 
         IPortfolio portfolio = new BasicPortfolio(initialCash);
-        
         IExecutionHandler executionHandler = new SimulatedExecutionHandler();
 
         BacktestEngine engine = new BacktestEngine(
@@ -51,6 +65,6 @@ public class Main {
 
         engine.run();
 
-        System.out.println("--- Backtest complete ---");
+        System.out.println("\n--- Backtest complete ---");
     }
 }
