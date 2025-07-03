@@ -4,6 +4,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import com.quantlearn.backtest.BacktestEngine;
+import com.quantlearn.backtest.BacktestResult;
 import com.quantlearn.backtest.IDataHandler;
 import com.quantlearn.backtest.IExecutionHandler;
 import com.quantlearn.backtest.IPortfolio;
@@ -63,8 +64,9 @@ public class Main {
             strategy
         );
 
-        engine.run();
-
+        BacktestResult result = engine.run();
+        System.out.println(result);
+        
         System.out.println("\n--- Backtest complete ---");
     }
 }

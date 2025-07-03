@@ -26,7 +26,7 @@ public class BacktestEngine {
         this.strategy = strategy;
     }
 
-    public void run() {
+    public BacktestResult run() {
         System.out.println("Starting Backtest...");
         try(IDataHandler dataHandler = this.dataHandler) {
             while(dataHandler.hasNext()) {
@@ -39,6 +39,7 @@ public class BacktestEngine {
         } catch(IOException e) {
             System.out.println("error during data handling");
         }
+        return portfolio.generateResult();
     }
 
     public void processEvent(Event event) {

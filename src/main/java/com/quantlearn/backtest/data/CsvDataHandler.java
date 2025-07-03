@@ -73,7 +73,7 @@ public class CsvDataHandler implements IDataHandler {
             @SuppressWarnings("UnnecessaryTemporaryOnConversionFromString")
             Double close = Double.parseDouble(values[4]);
             @SuppressWarnings("UnnecessaryTemporaryOnConversionFromString")
-            Double volume = Double.parseDouble(values[6]);
+            Double volume = Double.parseDouble(values[5]);
 
             Bar bar = new BaseBar(Duration.ofDays(1), dateTime, open, high, low, close, volume);
             MarketEvent event = new MarketEvent(dateTime.toInstant(), symbol, bar);

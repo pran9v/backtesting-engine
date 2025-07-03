@@ -13,4 +13,6 @@ public interface IPortfolio {
     void onFillEvent(FillEvent event);
 
     void updateMarketValue(MarketEvent event);
+
+    BacktestResult generateResult();
 }
