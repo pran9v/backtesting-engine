@@ -30,7 +30,7 @@ public class Main {
 
         System.out.println("Choose a strategy:");
         System.out.println("1. Buy and Hold");
-        System.out.println("2. SMA Cross (10, 30)");
+        System.out.println("2. SMA Cross (20, 50)");
         System.out.print("Enter choice (1 or 2): ");
 
         try {
