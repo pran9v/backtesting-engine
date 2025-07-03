@@ -46,7 +46,7 @@ public class Main {
 
         switch (choice) {
             case 1 -> strategy = new BuyAndHoldStrategy(symbol);
-            case 2 -> strategy = new SmaCrossStrategy(symbol, 10, 30);
+            case 2 -> strategy = new SmaCrossStrategy(symbol, 20, 50);
             default -> {
                 System.out.println("\nInvalid choice. Please select 1 or 2.");
                 System.exit(1);
@@ -66,7 +66,7 @@ public class Main {
 
         BacktestResult result = engine.run();
         System.out.println(result);
-        
+
         System.out.println("\n--- Backtest complete ---");
     }
 }
