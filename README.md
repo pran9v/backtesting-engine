@@ -10,9 +10,7 @@
 ## 📊 Project Stats
 
 - **Languages Used**
-  - Java: ~95%
-  - Gradle: ~4%
-  - Shell / Others: ~1%
+  - Java: 100%
 - **Last Commit**: Automatically updated via GitHub badge
 
 ---
