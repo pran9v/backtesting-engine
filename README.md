@@ -75,5 +75,5 @@ To provide a flexible, event-driven, and extensible Java-based backtesting engin
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/<your-username>/<your-repo>.git
+   git clone https://github.com/pran9v/backtesting-engine.git
    cd backtesting-engine
