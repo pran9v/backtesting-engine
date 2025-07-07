@@ -11,7 +11,6 @@
 
 - **Languages Used**
   - Java: 100%
-- **Last Commit**: Automatically updated via GitHub badge
 
 ---
 
