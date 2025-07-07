@@ -1,4 +1,18 @@
-*.class
+# IDE config
+.vscode/
+
+# Gradle and build files
 .gradle/
 build/
 out/
+
+# IntelliJ / Eclipse / VS Code junk
+*.iml
+*.log
+.idea/
+.project
+.classpath
+
+# OS-specific files
+.DS_Store
+Thumbs.db
