@@ -40,6 +40,8 @@ To provide a flexible, event-driven, and extensible Java-based backtesting engin
 - Realistic commission and slippage modeling
 - Strategy compatibility with [TA4J](https://github.com/ta4j/ta4j)
 - Performance report with total P/L and % return
+- Equity curve visualization using XChart
+- Sharpe Ratio and Max Drawdown statistics
 
 ---
 
