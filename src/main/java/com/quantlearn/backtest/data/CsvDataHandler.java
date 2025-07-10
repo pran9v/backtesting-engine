@@ -56,7 +56,7 @@ public class CsvDataHandler implements IDataHandler {
         String[] values = currentLine.split(",");
 
         try {
-            if (values.length < 7) {
+            if (values.length < 6) {
                 System.err.println("Skipping malformed data line (not enough columns): " + currentLine);
                 return;
             }

@@ -1,6 +1,12 @@
 package com.quantlearn.backtest.portfolio;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
@@ -18,13 +24,20 @@ public class BasicPortfolio implements IPortfolio {
     private final double initialCash;
     private double currentCash;
     private int tradeCount = 0;
+    private final boolean ignoreZeroReturnDays;
 
     private final Map<String, Position> positions = new HashMap<>();
     private final Map<String, Double> marketValues = new HashMap<>();
 
-    public BasicPortfolio(double initialCash) {
+    private final List<Instant> equityTimeStamps = new ArrayList<>();
+    private final List<Double> equityCurve = new ArrayList<>();
+
+    private record FilledEquityCurve(List<Instant> timestamps, List<Double> values) {}
+
+    public BasicPortfolio(double initialCash, boolean ignoreZeroReturnDays) {
         this.initialCash = initialCash;
         this.currentCash = initialCash;
+        this.ignoreZeroReturnDays = ignoreZeroReturnDays;
     }
 
     @Override
@@ -86,17 +99,107 @@ public class BasicPortfolio implements IPortfolio {
 
     @Override
     public BacktestResult generateResult() {
-        double finalEquity = calculateTotalEquity();
-        double totalProfit = finalEquity - this.initialCash;
-        double totalReturn = (totalProfit / this.initialCash) * 100;
+        FilledEquityCurve filledCurve = createFilledEquityCurve();
+        double maxDrawdown = calMaxDrawdown(filledCurve.values);
+        double sharpeRatio = calSharpeRatio(filledCurve.values);
+
+        double finalEquity = filledCurve.values.isEmpty() ? initialCash : filledCurve.values.get(filledCurve.values.size() - 1);
+        double totalProfit = finalEquity - initialCash;
+        double totalReturn = (initialCash == 0) ? 0 : totalProfit / initialCash;
 
         return new BacktestResult(
-                this.initialCash,
-                finalEquity,
-                totalProfit,
-                totalReturn,
-                this.tradeCount
+                this.initialCash, finalEquity, totalProfit, totalReturn * 100,
+                this.tradeCount, maxDrawdown, sharpeRatio,
+                filledCurve.timestamps, filledCurve.values, this.ignoreZeroReturnDays
         );
+    }
+
+    private double calSharpeRatio(List<Double> values) {
+        if(values.size()<2) return 0.0; 
+
+        ArrayList<Double> allDailyReturns = new ArrayList<>();
+        for(int i=1; i<values.size(); i++) {
+            double prev = values.get(i-1);
+            allDailyReturns.add(prev==0 ? 0.0 : (values.get(i)/prev)-1);
+        }
+
+        List<Double> returnsForCalc = new ArrayList<>();
+        double annulizationFactor;
+
+        if(this.ignoreZeroReturnDays) {
+            for (double r : allDailyReturns) {
+                if (Math.abs(r) > 1e-9) {
+                    returnsForCalc.add(r);
+                }
+            }
+            annulizationFactor = 252.0;
+        } else {
+            returnsForCalc = allDailyReturns;
+            annulizationFactor = 365.0;
+        }
+        double annualRiskFreeRate = 0.044;
+        double dailyRiskFreeRate = annualRiskFreeRate / annulizationFactor;
+
+        if (returnsForCalc.size() < 2) return 0.0;
+        double sum = 0.0;
+        for (double r : returnsForCalc) {
+            sum+=r;
+        }
+        double mean = sum/returnsForCalc.size();
+
+        double squaredDiff = 0.0;
+        for(double r : returnsForCalc) {
+            squaredDiff += Math.pow(r-mean, 2);
+        }
+        double sd = Math.sqrt(squaredDiff/returnsForCalc.size());
+        
+        if(sd == 0) return 0.0;
+
+        return ((mean-dailyRiskFreeRate)/sd) * Math.sqrt(annulizationFactor);
+    }
+
+    private double calMaxDrawdown(List<Double> values) {
+        if(values.size()==0) return 0.0;
+        double maxDrawdown = 0.0, peak = -Double.MAX_VALUE;
+        for(double equity : values) {
+            if (equity > peak) peak = equity;
+            if (peak > 0) {
+                double drawDown = (peak-equity)/peak;
+                maxDrawdown = Math.max(maxDrawdown, drawDown);
+            }
+        }
+        return maxDrawdown;
+    }
+
+    private FilledEquityCurve createFilledEquityCurve() {
+        if(this.equityTimeStamps.isEmpty()) return new FilledEquityCurve(new ArrayList<>(), new ArrayList<>());
+        List<Instant> filledTimestamps = new ArrayList<>();
+        List<Double> filledValues = new ArrayList<>();
+        ZoneId zone = ZoneId.of("America/New_York");
+        filledTimestamps.add(this.equityTimeStamps.get(0));
+        filledValues.add(this.equityCurve.get(0));
+        for (int i=1; i<this.equityTimeStamps.size(); i++) {
+            LocalDate prevDate = this.equityTimeStamps.get(i-1).atZone(zone).toLocalDate();
+            double prevValue = this.equityCurve.get(i-1);
+            LocalDate currDate = this.equityTimeStamps.get(i).atZone(zone).toLocalDate();
+            long daysBetween = ChronoUnit.DAYS.between(prevDate, currDate);
+            if(daysBetween>1) {
+                for(int j=1; j<daysBetween; j++) {
+                    LocalDate dateToFill = prevDate.plusDays(j);
+                    filledTimestamps.add(dateToFill.atStartOfDay(zone).toInstant());
+                    filledValues.add(prevValue);
+                }
+            }
+            filledTimestamps.add(this.equityTimeStamps.get(i));
+            filledValues.add(this.equityCurve.get(i));
+        }
+        return new FilledEquityCurve(filledTimestamps, filledValues);
+    } 
+
+    @Override
+    public void recordCurrentEquity(Instant timestamp) {
+        this.equityTimeStamps.add(timestamp);
+        this.equityCurve.add(calculateTotalEquity());
     }
 
     private double calculateTotalEquity() {

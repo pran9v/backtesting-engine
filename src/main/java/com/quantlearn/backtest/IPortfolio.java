@@ -1,5 +1,6 @@
 package com.quantlearn.backtest;
 
+import java.time.Instant;
 import java.util.Queue;
 
 import com.quantlearn.backtest.event.Event;
@@ -13,6 +14,8 @@ public interface IPortfolio {
     void onFillEvent(FillEvent event);
 
     void updateMarketValue(MarketEvent event);
+
+    void recordCurrentEquity(Instant timestamp);
 
     BacktestResult generateResult();
 }

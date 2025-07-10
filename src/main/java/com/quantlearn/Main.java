@@ -38,9 +38,11 @@ public class Main {
         } catch (InputMismatchException e) {
             System.out.println("\nInvalid input. Please enter a number (1 or 2).");
             System.exit(1);
-        } finally {
-            sc.close();
         }
+
+        System.out.print("\nFor Sharpe Ratio, ignore days with zero returns? (true/false): ");
+        boolean ignoreZeroReturnDays = sc.nextBoolean();
+        sc.close();
 
         IStrategy strategy;
 
@@ -54,7 +56,7 @@ public class Main {
             }
         }
 
-        IPortfolio portfolio = new BasicPortfolio(initialCash);
+        IPortfolio portfolio = new BasicPortfolio(initialCash, ignoreZeroReturnDays);
         IExecutionHandler executionHandler = new SimulatedExecutionHandler();
 
         BacktestEngine engine = new BacktestEngine(
@@ -66,6 +68,8 @@ public class Main {
 
         BacktestResult result = engine.run();
         System.out.println(result);
+
+        ChartGenerator.generateEquityCurve(result, "equity_curve.png");
 
         System.out.println("\n--- Backtest complete ---");
     }
